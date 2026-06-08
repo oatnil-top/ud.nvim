@@ -17,6 +17,7 @@ M.defaults = {
   keymaps = {
     apply_task = "<leader>ut",
     apply_note = "<leader>un",
+    open_task = "<leader>uo",
   },
 }
 
