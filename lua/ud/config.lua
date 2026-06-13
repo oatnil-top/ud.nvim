@@ -5,8 +5,8 @@ M.defaults = {
   -- Path to ud binary (default: finds in $PATH)
   ud_bin = "ud",
 
-  -- Local sync directory (required — user must set this)
-  sync_dir = nil,
+  -- Local sync directory
+  sync_dir = "~/ud-sync",
 
   -- Auto-sync on save for files in sync_dir
   auto_sync = true,
