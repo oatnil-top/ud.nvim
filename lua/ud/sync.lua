@@ -190,18 +190,23 @@ function M.is_watching()
   return M._watch_job ~= nil
 end
 
---- Push-only sync (used for auto-sync on save).
---- Quieter than full sync — only notifies on error.
-function M.push_quiet()
+--- Full sync on save (push + pull).
+--- Quieter than manual sync — only notifies on error or when there are changes.
+function M.sync_quiet()
   local sync_dir = config.get_sync_dir()
   if not sync_dir then
     return
   end
 
-  local args = { "local-sync", "--push", "--keep-local", sync_dir }
+  local args = { "local-sync", "--keep-local", sync_dir }
 
   M.run(args, function(ok, output)
-    if not ok then
+    if ok then
+      local summary = output:match("Sync complete: (.+)")
+      if summary and not summary:match("nothing to sync") then
+        vim.notify("ud: " .. summary, vim.log.levels.INFO)
+      end
+    else
       vim.notify("ud: auto-sync failed — " .. output, vim.log.levels.ERROR)
     end
   end)

@@ -133,7 +133,7 @@ function M.setup(opts)
       group = augroup,
       pattern = sync_dir_pattern,
       callback = function()
-        sync.push_quiet()
+        sync.sync_quiet()
       end,
     })
   end
