@@ -85,7 +85,13 @@ function M.sync(opts)
 
   M.run(args, function(ok, output)
     if ok then
-      vim.notify("ud: sync complete", vim.log.levels.INFO)
+      -- Parse summary line from output
+      local summary = output:match("Sync complete: (.+)")
+      if summary then
+        vim.notify("ud: " .. summary, vim.log.levels.INFO)
+      else
+        vim.notify("ud: sync complete", vim.log.levels.INFO)
+      end
     else
       vim.notify("ud: sync failed — " .. output, vim.log.levels.ERROR)
     end
@@ -122,11 +128,17 @@ function M.watch_start()
     on_stdout = function(_, data)
       if data then
         for _, line in ipairs(data) do
-          if line ~= "" and line:match("sync") then
+          if line == "" then
+            goto continue
+          end
+          -- Show sync summary with counts (skip "nothing to sync")
+          local summary = line:match("^Sync complete: (.+)$")
+          if summary and not summary:match("nothing to sync") then
             vim.schedule(function()
-              vim.notify("ud: " .. line, vim.log.levels.DEBUG)
+              vim.notify("ud: " .. summary, vim.log.levels.INFO)
             end)
           end
+          ::continue::
         end
       end
     end,
