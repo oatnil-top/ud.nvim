@@ -197,7 +197,25 @@ end
 function M.apply_file(filepath)
   M.run({ "apply", "-f", filepath }, function(ok, output)
     if not ok then
-      vim.notify("ud: apply failed — " .. output, vim.log.levels.ERROR)
+      -- Task was deleted from remote
+      if output:match("Task not found") or output:match("not found") then
+        local filename = vim.fn.fnamemodify(filepath, ":t")
+        vim.ui.select({ "Yes, delete local file", "No, keep it" }, {
+          prompt = "Task was deleted from remote. Delete \"" .. filename .. "\"?",
+        }, function(choice)
+          if choice and choice:match("^Yes") then
+            -- Close buffer if open
+            local bufnr = vim.fn.bufnr(filepath)
+            if bufnr ~= -1 and vim.api.nvim_buf_is_valid(bufnr) then
+              vim.api.nvim_buf_delete(bufnr, { force = true })
+            end
+            os.remove(filepath)
+            vim.notify("ud: deleted " .. filename, vim.log.levels.INFO)
+          end
+        end)
+      else
+        vim.notify("ud: apply failed — " .. output, vim.log.levels.ERROR)
+      end
       return
     end
 
