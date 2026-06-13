@@ -22,19 +22,6 @@ Neovim adapter for the [UnDercontrol](https://undercontrol.io) CLI. Syncs tasks 
 }
 ```
 
-### packer.nvim
-
-```lua
-use {
-  "oatnil/ud-nvim",
-  config = function()
-    require("ud").setup({
-      sync_dir = "~/ud-sync",
-    })
-  end,
-}
-```
-
 ## Configuration
 
 ```lua
@@ -61,16 +48,6 @@ require("ud").setup({
   defaults = {
     status = "todo",
     tags = {},
-    board = nil,
-    project = nil,
-  },
-
-  -- Key mappings (set to false to disable)
-  keymaps = {
-    sync = "<leader>us",       -- trigger sync
-    new_task = "<leader>ut",   -- create new task
-    new_note = "<leader>un",   -- create note on current task
-    browse = "<leader>uo",     -- browse tasks
   },
 })
 ```
@@ -86,14 +63,40 @@ require("ud").setup({
 | `:UdOpen [id]` | Open task by ID or browse |
 | `:UdNewTask [title]` | Create a new task file |
 | `:UdNewNote` | Create a note linked to the task in the current buffer |
+| `:UdExplore` | Set cwd to sync dir and open task browser |
+
+## Keymaps
+
+No keymaps are set by default. Add your own in the `keymaps` table:
+
+```lua
+require("ud").setup({
+  sync_dir = "~/ud-sync",
+  keymaps = {
+    sync = "<leader>us",       -- trigger sync
+    new_task = "<leader>ut",   -- create new task
+    new_note = "<leader>un",   -- create note on current task
+    browse = "<leader>uo",     -- browse tasks
+  },
+})
+```
+
+Or set them yourself outside the plugin:
+
+```lua
+vim.keymap.set("n", "<leader>us", "<cmd>UdSync<cr>", { desc = "ud: Sync" })
+vim.keymap.set("n", "<leader>ut", "<cmd>UdNewTask<cr>", { desc = "ud: New task" })
+vim.keymap.set("n", "<leader>uo", "<cmd>UdList<cr>", { desc = "ud: Browse tasks" })
+```
 
 ## How it works
 
 1. **Setup** checks that the `ud` CLI is installed
-2. **`:UdSync full`** runs `ud local-sync --full` to pull all tasks as `.md` files into your sync dir
-3. **Edit** the markdown files normally — they have YAML frontmatter with task metadata
-4. **Save** triggers an auto-push (syncs your changes back to the server)
-5. **`:UdSyncWatch`** starts continuous background sync for real-time collaboration
+2. **`:UdSync full`** pulls all tasks as `.md` files into your sync dir
+3. **Edit** the markdown files normally — YAML frontmatter holds task metadata
+4. **Save** triggers an auto-push (syncs changes back to the server)
+5. **`:UdSyncWatch`** starts continuous background sync
+6. **Notifications** show sync counts (e.g. "3 created, 2 pushed, 5 pulled")
 
 Tasks are plain markdown files:
 
@@ -106,6 +109,17 @@ tags: [work, urgent]
 ---
 
 Task description goes here.
+```
+
+Notes link to a parent task via `task_id`:
+
+```markdown
+---
+task_id: abc12345-...
+title: Progress update
+---
+
+Note content here.
 ```
 
 ## Health check

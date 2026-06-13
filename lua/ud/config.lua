@@ -28,13 +28,8 @@ M.defaults = {
     project = nil,
   },
 
-  -- Key mappings (set to false to disable)
-  keymaps = {
-    sync = "<leader>us",
-    new_task = "<leader>ut",
-    new_note = "<leader>un",
-    browse = "<leader>uo",
-  },
+  -- Key mappings (nil = no default keymaps, user sets their own)
+  keymaps = {},
 }
 
 --- Active configuration (merged with user overrides)
