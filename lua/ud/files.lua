@@ -186,6 +186,17 @@ function M.find_by_id(task_id)
   return nil
 end
 
+--- Open a file and set the window's local cwd to the sync dir
+--- so that file explorers (Snacks, neo-tree, etc.) can locate it.
+---@param filepath string
+function M.open_file(filepath)
+  vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+  local sync_dir = config.get_sync_dir()
+  if sync_dir then
+    vim.cmd("lcd " .. vim.fn.fnameescape(sync_dir))
+  end
+end
+
 --- Browse tasks via vim.ui.select and open the chosen one.
 ---@param opts? { status?: string }
 function M.browse(opts)
@@ -216,7 +227,7 @@ function M.browse(opts)
     end,
   }, function(choice)
     if choice then
-      vim.cmd("edit " .. vim.fn.fnameescape(choice.path))
+      M.open_file(choice.path)
     end
   end)
 end
@@ -226,7 +237,7 @@ end
 function M.open(task_id)
   local task = M.find_by_id(task_id)
   if task then
-    vim.cmd("edit " .. vim.fn.fnameescape(task.path))
+    M.open_file(task.path)
   else
     vim.notify("ud: task " .. task_id .. " not found in sync dir", vim.log.levels.WARN)
   end
@@ -272,7 +283,7 @@ function M.new_task(opts)
     f:write(content)
     f:close()
 
-    vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+    M.open_file(filepath)
     -- Place cursor at end of file (ready to type description)
     vim.cmd("normal! G")
   end
@@ -357,7 +368,7 @@ function M.new_note(opts)
   f:write(content)
   f:close()
 
-  vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+  M.open_file(filepath)
   -- Place cursor on the title line in frontmatter
   vim.cmd("normal! 3G$")
 end
