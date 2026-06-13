@@ -198,7 +198,7 @@ function M.explore()
   if not sync_dir then
     return
   end
-  vim.cmd("lcd " .. vim.fn.fnameescape(sync_dir))
+  vim.cmd("cd " .. vim.fn.fnameescape(sync_dir))
   M.browse()
 end
 
