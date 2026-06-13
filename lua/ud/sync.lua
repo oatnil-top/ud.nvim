@@ -190,25 +190,49 @@ function M.is_watching()
   return M._watch_job ~= nil
 end
 
---- Full sync on save (push + pull).
---- Quieter than manual sync — only notifies on error or when there are changes.
-function M.sync_quiet()
-  local sync_dir = config.get_sync_dir()
-  if not sync_dir then
-    return
-  end
-
-  local args = { "local-sync", "--keep-local", sync_dir }
-
-  M.run(args, function(ok, output)
-    if ok then
-      local summary = output:match("Sync complete: (.+)")
-      if summary and not summary:match("nothing to sync") then
-        vim.notify("ud: " .. summary, vim.log.levels.INFO)
-      end
-    else
-      vim.notify("ud: auto-sync failed — " .. output, vim.log.levels.ERROR)
+--- Apply a single file and write back server metadata.
+--- Runs `ud apply -f <file>`, parses the task ID from output,
+--- then `ud describe task <id> -o apply` to write back id/timestamps.
+---@param filepath string absolute path to the .md file
+function M.apply_file(filepath)
+  M.run({ "apply", "-f", filepath }, function(ok, output)
+    if not ok then
+      vim.notify("ud: apply failed — " .. output, vim.log.levels.ERROR)
+      return
     end
+
+    -- Parse task ID from "Task created: <id>" or "Task updated: <id>"
+    local task_id = output:match("[Tt]ask %w+: (%S+)")
+    if not task_id then
+      -- Could be a note: "Note created: <id>" — no write-back needed
+      return
+    end
+
+    -- Fetch the canonical version with server metadata and write back
+    M.run({ "describe", "task", task_id, "-o", "apply" }, function(ok2, describe_output)
+      if not ok2 then
+        return
+      end
+
+      -- Write back to file
+      local f = io.open(filepath, "w")
+      if f then
+        f:write(describe_output)
+        -- Ensure trailing newline
+        if not describe_output:match("\n$") then
+          f:write("\n")
+        end
+        f:close()
+
+        -- Reload buffer if it's still open
+        local bufnr = vim.fn.bufnr(filepath)
+        if bufnr ~= -1 and vim.api.nvim_buf_is_valid(bufnr) then
+          vim.api.nvim_buf_call(bufnr, function()
+            vim.cmd("edit!")
+          end)
+        end
+      end
+    end)
   end)
 end
 

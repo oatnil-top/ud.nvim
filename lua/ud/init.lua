@@ -132,8 +132,8 @@ function M.setup(opts)
     vim.api.nvim_create_autocmd("BufWritePost", {
       group = augroup,
       pattern = sync_dir_pattern,
-      callback = function()
-        sync.sync_quiet()
+      callback = function(ev)
+        sync.apply_file(ev.match)
       end,
     })
   end
