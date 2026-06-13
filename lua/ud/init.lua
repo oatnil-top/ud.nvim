@@ -91,6 +91,12 @@ function M.setup(opts)
     desc = "Create a note linked to the current task",
   })
 
+  vim.api.nvim_create_user_command("UdExplore", function()
+    files.explore()
+  end, {
+    desc = "Set cwd to sync dir for file explorer",
+  })
+
   -- Set up keymaps
   local keymaps = config.options.keymaps
   if keymaps then

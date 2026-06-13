@@ -186,15 +186,20 @@ function M.find_by_id(task_id)
   return nil
 end
 
---- Open a file and set the window's local cwd to the sync dir
---- so that file explorers (Snacks, neo-tree, etc.) can locate it.
+--- Open a file in the current window.
 ---@param filepath string
 function M.open_file(filepath)
   vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+end
+
+--- Set the window's local cwd to the sync dir so explorers can reveal files.
+function M.explore()
   local sync_dir = config.get_sync_dir()
-  if sync_dir then
-    vim.cmd("lcd " .. vim.fn.fnameescape(sync_dir))
+  if not sync_dir then
+    return
   end
+  vim.cmd("lcd " .. vim.fn.fnameescape(sync_dir))
+  vim.notify("ud: cwd set to " .. sync_dir, vim.log.levels.INFO)
 end
 
 --- Browse tasks via vim.ui.select and open the chosen one.
